@@ -6,7 +6,7 @@ class SGraph{
 
         this.parent = document.getElementById(parent);
 
-        this.width = width;
+        // = width;
         this.height = width * 0.5625;
         this.bgColor = bgColor;
         this.data = data;
@@ -41,8 +41,8 @@ class SGraph{
 
         this.colors = [
             "red",
+            "rgb(0,168,255)",
             "green",
-            "pink",
             "yellow",
             "orange",
             "blue",
@@ -69,10 +69,10 @@ class SGraph{
     main(){
 
 
-        setInterval(() =>{
+       // setInterval(() =>{
             this.resizeCanvas();
             this.render();
-        },66);
+       // },66);
     }
 
     setRange(){
@@ -131,6 +131,7 @@ class SGraph{
         this.canvas = document.createElement("canvas");
         this.canvas.width = this.width;
         this.canvas.height = this.height;
+        this.canvas.className = "s-graph-canvas";
 
         this.context = this.canvas.getContext("2d");
 
@@ -234,7 +235,7 @@ class SGraph{
 
         this.dataGap = dataOffset;
 
-        console.log(this.mostData);
+       // console.log(this.mostData);
         let currentX = 0;
 
 
@@ -249,7 +250,7 @@ class SGraph{
 
        
 
-        for(let i = -1; i < this.mostData; i++){
+       /* for(let i = -1; i < this.mostData; i++){
 
             currentX = this.graphX + (dataOffset * (i + 1));
 
@@ -259,7 +260,7 @@ class SGraph{
             c.stroke();
             c.closePath();
 
-        }
+        }*/
     }
 
 
@@ -327,6 +328,7 @@ class SGraph{
         for(let i = 0; i < this.data.length; i++){
 
             c.strokeStyle = this.colors[i];
+            c.fillStyle = this.colors[i];
 
             for(let d = 0; d < this.data[i].data.length; d++){
                 
@@ -338,11 +340,22 @@ class SGraph{
 
                 currentX = this.graphX + (this.dataGap * (d + 1));
 
-                c.beginPath();
-                c.moveTo(previousX, startY - (dataBit * this.data[i].data[d]) );
-                c.lineTo(currentX, startY - (dataBit * this.data[i].data[d+1]));
-                c.stroke();
-                c.closePath();
+               // if(this.data[i].data[d] != 0){
+
+                    c.beginPath();
+                    c.moveTo(previousX, startY - (dataBit * this.data[i].data[d]) );
+                    c.lineTo(currentX, startY - (dataBit * this.data[i].data[d+1]));
+                    c.stroke();
+                    c.closePath();
+
+               // }
+
+                /*if(this.mostData < 100){
+                    c.beginPath();
+                    c.arc(currentX, startY - (dataBit * this.data[i].data[d+1]), this.y(0.25), 0 , Math.PI * 2);
+                    c.fill();
+                    c.closePath();
+                }*/
             }
         }
     }
