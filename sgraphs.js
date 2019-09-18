@@ -1,371 +1,245 @@
 class SGraph{
-
-
-    constructor(parent, sideText, bottomText, width, bgColor, data, title){
-
+    
+    constructor(parent, width, bg, title, data, yAxisLabel, xAxisLabel, postFix, maxValue){
 
         this.parent = document.getElementById(parent);
-
-        // = width;
-        this.height = width * 0.5625;
-        this.bgColor = bgColor;
-        this.data = data;
+        this.width = width;
+        this.bg = bg;
         this.title = title;
+        this.data = data;
+        this.yAxisLabel = yAxisLabel;
+        this.xAxisLabel = xAxisLabel;
+        this.maxValue = maxValue;
 
-        this.bottomText = bottomText;
-        this.sideText = sideText;
-
-        this.createCanvas();
-
-        //this.graphX = 
-        this.graphHeight = this.y(80);
-        this.graphWidth = this.x(75);
-        
-        this.max = 0;
-
-        if(arguments.length == 8){
-            this.max = arguments[7];
-        }
-
-        this.createColors();
-
-        this.setRange();
-
-        this.render();
-        this.main();
-
-    }
-
-
-    createColors(){
+        this.graphStartX = 20;
+        this.graphStartY = 10;
+        this.graphWidth = 78;
+        this.graphHeight = 70;
+        this.postFix = postFix;
 
         this.colors = [
             "red",
             "rgb(0,168,255)",
-            "green",
+            "rgb(60,255,60)",
             "yellow",
             "orange",
-            "blue",
+            "pink",
             "white",
-            "black"
+            "rgb(150,150,150)"
         ];
+
+        this.setMaxValue();
+
+        this.createCanvas();
+        this.drawGraph();
+        this.plotData();
+
+        console.log(data);
     }
 
-    resizeCanvas(){
+    setMaxValue(){
 
+        if(this.maxValue == undefined || this.maxValue == null){
+            
+            let bestValue = null;
 
-       // console.log(this.parent.getBoundingClientRect());
+            let d = 0;
 
-        const bounds = this.parent.getBoundingClientRect();
+            for(let i = 0; i < this.data.length; i++){
 
+                d = this.data[i];
 
-        this.canvas.width = bounds.width * 0.8;
-        this.canvas.height = this.canvas.width * 0.5625;
+                for(let x = 0; x < d.data.length; x++){
 
-        this.graphHeight = this.y(80);
-        this.graphWidth = this.x(75);
-    }
+                    if(d.data[x] > bestValue || bestValue == null){
 
-    main(){
-
-
-       // setInterval(() =>{
-            this.resizeCanvas();
-            this.render();
-       // },66);
-    }
-
-    setRange(){
-
-        //this.max = 0;
-       // this.min = 0;
-
-        this.mostData = 0;
-
-        for(let i = 0; i < this.data.length; i++){
-
-            for(let d = 0; d < this.data[i].data.length; d++){
-
-                if(i === 0 && d === 0){
-                    if(this.max === 0){
-                        this.max = this.data[i].data[d];
+                        bestValue = d.data[x];
+                        console.log("Best value is now : "+bestValue);
                     }
-                   // this.min = this.data[i].data[d];
-                }
-
-                if(this.data[i].data[d] > this.max){
-                    this.max = this.data[i].data[d];
-                }
-
-               // if(this.data[i].data[d] < this.min){
-               //     this.min = this.data[i].data[d];
-              // }
-
-                if(d > this.mostData){
-                    this.mostData = d;
                 }
             }
+
+            this.maxValue = bestValue;
         }
-
-        console.log("min = "+this.min)
-        console.log("max = "+this.max)
-
-        this.range = this.max - this.min;
-
-        console.log("range = "+this.range);
     }
 
     x(input){
-
-        return (this.canvas.width / 100) * input;
+        return (this.canvas.width * 0.01) * input;
     }
 
-
     y(input){
-
-        return (this.canvas.height / 100) * input;
+        return (this.canvas.height * 0.01) * input;
     }
 
     createCanvas(){
 
-        this.canvas = document.createElement("canvas");
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        this.canvas.className = "s-graph-canvas";
+        const elem = document.createElement("canvas");
+        elem.className = "s-graph";
 
-        this.context = this.canvas.getContext("2d");
+        const bounds = this.parent.getBoundingClientRect();
 
-        this.parent.appendChild(this.canvas);
+
+        this.canvas = elem;
+        this.canvas.width = bounds.width * 0.75;
+        this.canvas.height = this.canvas.width * 0.5625;
+        this.c = this.canvas.getContext("2d");
+        this.parent.appendChild(elem);
     }
 
+    drawRect(x, y, width, height, color){
 
+        const c = this.c;
+        c.fillStyle = color;
+        c.fillRect(this.x(x), this.y(y), this.x(width), this.y(height));
 
-    drawBackground(){
+    }
 
-        const c = this.context;
+    strokeRect(x, y, width, height, lineWidth, color){
 
-        const pat = c.createLinearGradient(0, 0, this.x(0), this.y(100));
+        const c = this.c;
+        c.strokeStyle = color;
+        c.lineWidth = this.y(lineWidth);
+        c.strokeRect(this.x(x), this.y(y), this.x(width), this.y(height));
 
-        pat.addColorStop(0,"rgb(32,32,32)");
-        pat.addColorStop(0.5,"rgb(64,64,64)");
-        pat.addColorStop(1,"rgb(32,32,32)");
+    }
 
-        c.fillStyle = pat;
+    fillText(x, y, align, color, fontSize, text){
 
-        c.fillRect(0, 0, this.x(100), this.y(100));
+        const c = this.c;
 
+        c.fillStyle = color;
+
+        c.textBasline = "top";
+
+        c.textAlign = align;
+
+        c.font = this.y(fontSize)+"px arial";
+
+        c.fillText(text, this.x(x), this.y(y));
+    }
+
+    rotate(x, y, angle){
+
+        const c = this.c;
+
+        if(arguments.length == 0){
+            c.restore();
+        }
+
+        c.save();
+
+        c.translate(this.x(x), this.y(y));
+
+       // c.translate(this.x(-width/2), this.y(-height/2));
+        c.rotate(((Math.PI * 2)/ 360) * angle);
+
+        
     }
 
     drawGraph(){
 
-        const c = this.context;
-        c.textBasline = "top";
 
+        const c = this.c;
 
-        
+        this.drawRect(0, 0, 100, 100, this.bg);
 
+        this.drawRect(this.graphStartX, this.graphStartY, this.graphWidth, this.graphHeight, "rgba(0,0,0,0.5)");
+        this.strokeRect(this.graphStartX, this.graphStartY, this.graphWidth, this.graphHeight, 0.25, "rgba(0,0,0,0.8)");
 
-        this.drawBackground();
+        for(let i = 0; i < 4; i+=2){
 
-        const titleFont = this.y(3.5)+"px arial";
-        c.textAlign = "center";
-        c.fillStyle = "white";
-        c.font = titleFont;
-        c.fillText(this.title, this.x(50), this.y(6));
+            this.drawRect(this.graphStartX, this.graphStartY + ((this.graphHeight * 0.25) * i), this.graphWidth, this.graphHeight * 0.25, "rgba(0,0,0,0.75)");
 
-        c.textAlign = "left";
+        }
 
-        c.fillStyle = "rgba(0,0,0,0.25)";
-        c.strokeStyle = "rgba(255,255,255,0.25)";
-        c.lineWidth = this.y(0.105);
+        c.strokeStyle = "rgba(255,255,255,0.2)";
 
-        this.graphX = this.x(24);
-        this.graphY = this.y(10);
+        for(let i = 0; i < 5; i++){
 
-        c.fillRect(this.graphX, this.graphY, this.graphWidth, this.graphHeight);
-        c.strokeRect(this.graphX, this.graphY, this.graphWidth, this.graphHeight);
+            console.log(this.graphStartY + (this.graphHeight * 0.25) * i);
+            this.fillText(this.graphStartX - 1.5, this.graphStartY + (this.graphHeight * 0.25) * i, "right", "white", 2.5, this.maxValue - ((this.maxValue * 0.25) * i));
 
-
-        c.save();
-
-        c.fillStyle = "white";
-        c.textAlign = "center";
-        c.translate(this.x(17),this.y(50));
-        c.rotate(Math.PI * 1.5);
-        c.fillText(this.sideText, 0 ,0);
-        c.restore();
-    
-
-       // let currentBox = 0;
-
-        this.boxHeight = this.graphHeight * 0.2;
-
-        c.lineWidth = this.y(0.25);
-        c.strokeStyle = "rgba(255,255,255,0.1)";
-
-        let currentY = 0;
-
-        c.font = this.y(2.25)+"px arial";
-        
-        c.textAlign = "right";
-
-        const valueOffset = this.max * 0.2;
-
-        for(let i = 0; i <= 5; i++){
-
-            currentY = this.graphY + (i * this.boxHeight);
-
-            c.fillStyle = "rgba(0,0,0,0.25)";
-
-            if(i % 2 == 0){
-                c.fillRect(this.graphX, currentY,this.graphWidth, this.boxHeight);
-            }
-
-            c.fillStyle = "white";
-            c.fillText((this.max - (valueOffset * i)).toFixed(2), this.graphX - this.x(1.25), currentY);
             c.beginPath();
-            c.moveTo(this.graphX - this.x(1.25), currentY);
-            c.lineTo(this.graphX, currentY);
-            c.stroke();
+            c.moveTo(this.x(this.graphStartX), this.y(this.graphStartY) + this.y((this.graphHeight * 0.25) * i));
+            c.lineTo(this.x(this.graphStartX) - this.x(1), this.y(this.graphStartY) + this.y((this.graphHeight * 0.25)) * i);
+            c.stroke()
             c.closePath();
         }
 
+        c.beginPath();
+        //c.strokeStyle = "white";
+        c.moveTo(this.x(this.graphStartX), this.y(this.graphStartY + this.graphHeight));
+        c.lineTo(this.x(this.graphStartX + this.graphWidth), this.y(this.graphStartY + this.graphHeight));
+        c.stroke()
+        c.closePath();
 
-        const dataOffset = this.graphWidth / this.mostData;
-
-        this.dataGap = dataOffset;
-
-       // console.log(this.mostData);
-        let currentX = 0;
-
-
-
-        c.font = this.y(2.25)+"px arial";
-
-        c.textAlign = "center";
-        c.fillText(this.bottomText, this.graphX + (this.graphWidth / 2), this.y(96));
-        c.textAlign = "left";
-
-      //  c.strokeStyle = "white";
-
-       
-
-       /* for(let i = -1; i < this.mostData; i++){
-
-            currentX = this.graphX + (dataOffset * (i + 1));
-
-            c.beginPath();
-            c.moveTo(currentX, this.graphY + this.graphHeight);
-            c.lineTo(currentX, this.graphY + this.graphHeight + this.y(1));
-            c.stroke();
-            c.closePath();
-
-        }*/
-    }
+        c.beginPath();
+        c.moveTo(this.x(this.graphStartX), this.y(this.graphStartY + this.graphHeight));
+        c.lineTo(this.x(this.graphStartX), this.y(this.graphStartY));
+        c.stroke()
+        c.closePath();
 
 
-    drawKeys(){
-
-        const c = this.context;
-
-        const width = this.x(1);
-        const height = this.y(2);
+        this.fillText(50, 6, "center", "white", 4, this.title);
 
 
-        const startX = this.x(2.5);
-        const startY = this.y(50);
-        const rowHeight = this.y(5);
+        this.rotate(5,50,270);
+        this.fillText(0,0,"center", "yellow", 3, this.yAxisLabel);
+        this.rotate();
 
-        const textOffset = this.x(4);
-
-
-        c.strokeStyle = "rgba(0,0,0,0.25)";
-        c.lineWidth = this.y(0.21);
-
-
-        c.font = this.y(2.4)+"px arial";
-
-        let currentY = 0;
-
-        c.textBaseline = "top";
-        c.textAlign = "left";
-
-        for(let i = 0; i < this.data.length; i++){
-
-            currentY = startY + (rowHeight * i);
-
-            c.fillStyle = this.colors[i];
-            c.fillRect(startX, currentY, width, height);
-            c.strokeRect(startX, currentY, width, height);
-
-            c.fillStyle = "white";
-            c.fillText(this.data[i].name, textOffset, currentY);
-        }
+        this.fillText(50,90,"center", "yellow", 3, this.xAxisLabel);
 
     }
+
 
     plotData(){
 
-        const c = this.context;
+        const c = this.c;
 
-        c.lineWidth = this.y(0.175);
+        let d = 0;
 
-        c.strokeStyle = "pink";
+        const offsetX = this.graphWidth / this.data[0].data.length;
+        const bit = this.graphHeight / this.maxValue;
 
-        
-
-        let currentX = 0;
-        let previousX = 0;
-
-        const startY = this.graphY + this.graphHeight;
-
-        let dataBit = 0;
-
-        if(this.max != 0){
-            dataBit = this.graphHeight / this.max;
-        }
+        let x = 0;
+        let nextX = 0;
+        let y = 0;
+        let nextY = 0;
 
         for(let i = 0; i < this.data.length; i++){
 
-            c.strokeStyle = this.colors[i];
+            d = this.data[i].data;
+
             c.fillStyle = this.colors[i];
+            c.strokeStyle = this.colors[i];
+            c.lineWidth = this.y(0.125);
 
-            for(let d = 0; d < this.data[i].data.length; d++){
-                
-                previousX = this.graphX + (this.dataGap * d);
-                
-                if(d == 0){
-                    previousX = this.graphX;
-                }
+            for(let a = 0; a < d.length; a++){
+          
+                if(a < d.length - 1){
 
-                currentX = this.graphX + (this.dataGap * (d + 1));
+                    x = this.graphStartX + (offsetX * (a + 1));
+                    nextX = this.graphStartX + (offsetX * (a + 2));
+                    y = (this.graphStartY + this.graphHeight) - (bit * d[a]);
+                    nextY = (this.graphStartY + this.graphHeight) - (bit * d[a + 1]);
 
-               // if(this.data[i].data[d] != 0){
+                    this.drawRect(x - 0.1, y - 0.2,0.2,0.4, this.colors[i]);
+
 
                     c.beginPath();
-                    c.moveTo(previousX, startY - (dataBit * this.data[i].data[d]) );
-                    c.lineTo(currentX, startY - (dataBit * this.data[i].data[d+1]));
+                    
+                    c.moveTo(this.x(x), this.y(y));
+                    c.lineTo(this.x(nextX), this.y(nextY));
                     c.stroke();
+                    
                     c.closePath();
-
-               // }
-
-                /*if(this.mostData < 100){
-                    c.beginPath();
-                    c.arc(currentX, startY - (dataBit * this.data[i].data[d+1]), this.y(0.25), 0 , Math.PI * 2);
-                    c.fill();
-                    c.closePath();
-                }*/
+                }
             }
+
         }
     }
 
-    render(){
 
 
-        this.drawGraph();
-        this.drawKeys();
 
-        this.plotData();
-    }
 }
