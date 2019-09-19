@@ -25,14 +25,17 @@ class SGraph{
             "orange",
             "pink",
             "white",
-            "rgb(150,150,150)"
+            "brown"
         ];
+
+        this.mouseOverData = [];
 
         this.setMaxValue();
 
         this.createCanvas();
         this.drawGraph();
         this.plotData();
+        this.drawKeys();
 
         console.log(data);
     }
@@ -54,7 +57,7 @@ class SGraph{
                     if(d.data[x] > bestValue || bestValue == null){
 
                         bestValue = d.data[x];
-                        console.log("Best value is now : "+bestValue);
+                       // console.log("Best value is now : "+bestValue);
                     }
                 }
             }
@@ -81,6 +84,10 @@ class SGraph{
 
         this.canvas = elem;
         this.canvas.width = bounds.width * 0.75;
+
+        if(this.canvas.width > 800){
+            this.canvas.width = 800;
+        }
         this.canvas.height = this.canvas.width * 0.5625;
         this.c = this.canvas.getContext("2d");
         this.parent.appendChild(elem);
@@ -156,7 +163,7 @@ class SGraph{
 
         for(let i = 0; i < 5; i++){
 
-            console.log(this.graphStartY + (this.graphHeight * 0.25) * i);
+            //console.log(this.graphStartY + (this.graphHeight * 0.25) * i);
             this.fillText(this.graphStartX - 1.5, this.graphStartY + (this.graphHeight * 0.25) * i, "right", "white", 2.5, this.maxValue - ((this.maxValue * 0.25) * i));
 
             c.beginPath();
@@ -183,14 +190,50 @@ class SGraph{
         this.fillText(50, 6, "center", "white", 4, this.title);
 
 
-        this.rotate(5,50,270);
-        this.fillText(0,0,"center", "yellow", 3, this.yAxisLabel);
+        this.rotate(12.5,50,270);
+        this.fillText(0,0,"center", "yellow", 4, this.yAxisLabel);
         this.rotate();
 
-        this.fillText(50,90,"center", "yellow", 3, this.xAxisLabel);
+        this.fillText(this.graphStartX + (this.graphWidth / 2), 87, "center", "yellow", 4, this.xAxisLabel);
 
     }
 
+    drawKeys(){
+
+        const c = this.c;
+
+        const rowHeight = 4;
+
+        const columnOffset2 = 25;
+        //const boxSize = 3;
+
+        const startY = 65;
+
+        let currentX = 0;
+        let currentY = 0;
+        let rowOffset = 0;
+
+        for(let i = 0; i < this.data.length; i++){
+
+
+            //if(i < 4){
+                currentX = 1;
+                rowOffset = i;
+           // }else{
+
+               // currentX = 5 + columnOffset2;
+
+               // rowOffset = i - 4;
+            //}
+
+            currentY = startY + (rowHeight * rowOffset);
+            this.drawRect(currentX, currentY, 1.5, 2.3, this.colors[i]);
+            this.strokeRect(currentX, currentY, 1.5, 2.3, 0.5, "rgba(255,255,255,0.1)");
+
+            this.fillText(currentX + 2, currentY + 2, "left", "white", 3, this.data[i].name);
+
+        }
+    }
 
     plotData(){
 
@@ -198,7 +241,7 @@ class SGraph{
 
         let d = 0;
 
-        const offsetX = this.graphWidth / this.data[0].data.length;
+        const offsetX = this.graphWidth / (this.data[0].data.length - 1);
         const bit = this.graphHeight / this.maxValue;
 
         let x = 0;
@@ -212,18 +255,20 @@ class SGraph{
 
             c.fillStyle = this.colors[i];
             c.strokeStyle = this.colors[i];
-            c.lineWidth = this.y(0.125);
+            c.lineWidth = this.y(0.25);
 
             for(let a = 0; a < d.length; a++){
           
                 if(a < d.length - 1){
 
-                    x = this.graphStartX + (offsetX * (a + 1));
-                    nextX = this.graphStartX + (offsetX * (a + 2));
+                    x = this.graphStartX + (offsetX * a);
+                    nextX = this.graphStartX + (offsetX * (a + 1));
                     y = (this.graphStartY + this.graphHeight) - (bit * d[a]);
                     nextY = (this.graphStartY + this.graphHeight) - (bit * d[a + 1]);
 
-                    this.drawRect(x - 0.1, y - 0.2,0.2,0.4, this.colors[i]);
+                    //this.drawRect(x - 0.15, y - 0.3,0.3,0.6, this.colors[i]);
+
+                    //this.mouseOverData.push({"x": x - 0.15, "y": y - 0.3, "width": 0.3, "height": 0.6, "text": this.data[i].name+" "+a+" "+this.postFix});
 
 
                     c.beginPath();
@@ -235,8 +280,9 @@ class SGraph{
                     c.closePath();
                 }
             }
-
         }
+
+        console.table(this.mouseOverData);
     }
 
 
