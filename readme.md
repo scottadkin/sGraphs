@@ -1,1 +1,1 @@
-![GitHub Logo](https://i.imgur.com/Ambebqv.png)
+![Potato eggs](https://i.imgur.com/5KQMzh9.png)
